@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VulnFix Blog</title>
+</head>
+<body>
+    {% if session.username %}
+        <p>Welcome, {{ session.username }}!</p>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    {% else %}
+        <a href="{{ url_for('login') }}">Login</a> |
+        <a href="{{ url_for('register') }}">Register</a>
+    {% endif %}
+
+    <h1>Welcome to VulnFix Blog</h1>
+    <p>This is your home page.</p>
+</body>
+</html>
