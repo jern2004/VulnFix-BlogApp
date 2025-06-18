@@ -1,0 +1,99 @@
+/* ── Animations ───────────────────────────────────────────────────────────── */
+
+/* Hero and element fade-in */
+@keyframes fadeSlideUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero section entrance */
+.hero-section {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeSlideUp 1s ease-out forwards;
+  /* Frosted-glass styling */
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.3);
+
+  /* Height expansion */
+  max-height: 200px;
+  overflow: hidden;
+  transition: max-height 0.8s ease-out;
+}
+.hero-section.expanded {
+  max-height: 800px;
+}
+
+/* Staggered fade-ins */
+.fade-in {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+.fade-in.delay-1 { animation-delay: 0.3s; }
+.fade-in.delay-2 { animation-delay: 0.6s; }
+.fade-in.delay-3 { animation-delay: 0.9s; }
+.fade-in.delay-4 { animation-delay: 1.2s; }
+.fade-in.delay-5 { animation-delay: 1.5s; }
+
+
+/* ── Global Background ────────────────────────────────────────────────────── */
+
+/* Gradient + subtle dot pattern */
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  background-attachment: fixed;
+  color: #333;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+
+/* ── Widgets & Interactions ───────────────────────────────────────────────── */
+
+/* Post cards */
+.post-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.post-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Search box focus glow */
+#search-box:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
+  transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+/* CTA popup */
+.cta-popup {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  max-width: 300px;
+  padding: 1rem 2.5rem 1rem 1.25rem;
+  border-radius: 0.5rem;
+  z-index: 1050;
+}
+
+.cta-popup .btn-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  filter: none !important;
+  opacity: 1 !important;
+}
