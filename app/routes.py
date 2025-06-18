@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from app.models import add_user, get_user_by_username
+from app.models import add_user, get_user_by_username, get_all_posts
 from werkzeug.security import check_password_hash
 
 app = Flask(__name__)
@@ -7,7 +7,8 @@ app.secret_key = 'something_secret'  # CHANGE THIS later for production
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    posts = get_all_posts()
+    return render_template('index.html', posts=posts)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
