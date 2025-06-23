@@ -194,3 +194,4 @@ cython_debug/
 .cursorindexingignorevenv/
 venv/
 __pycache__/
+database.db
