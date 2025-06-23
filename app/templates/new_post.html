@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Post{% endblock %}
+
+{% block styles %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/new_post.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="new-post-wrapper">
+  <div class="new-post-container">
+    <h1>Create New Post</h1>
+    <form id="new-post-form" method="POST" action="{{ url_for('new_post') }}">
+      {{ form.csrf_token }}
+
+      <div class="form-group">
+        {{ form.title.label(class="form-label", for="title") }}
+        {{ form.title(class="form-control", id="title", maxlength="100", placeholder="Enter a captivating title") }}
+        <span class="char-count" id="title-count">0/100</span>
+        {% if form.title.errors %}
+          <div class="error">{{ form.title.errors[0] }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        {{ form.content.label(class="form-label", for="content") }}
+        {{ form.content(class="form-control", id="content", rows="5", placeholder="Write your story here...") }}
+        <span class="char-count" id="content-count">0</span>
+        {% if form.content.errors %}
+          <div class="error">{{ form.content.errors[0] }}</div>
+        {% endif %}
+      </div>
+
+      {{ form.submit(class="btn btn-primary", id="submit-btn", disabled=True) }}
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/new_post.js') }}"></script>
+{% endblock %}

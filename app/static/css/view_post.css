@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+.view-post-wrapper {
+  padding-top: 80px; /* match your navbar height */
+  min-height: calc(100vh - 80px);
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-bottom: 2rem;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+.view-post-container {
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  max-width: 800px;
+  width: 100%;
+  padding: 2rem;
+}
+
+.view-post-container h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.view-post-container .meta {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.view-post-container .post-content {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #444;
+  white-space: pre-wrap;
+  margin-bottom: 2rem;
+}
+
+.back-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff !important;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102,126,234,0.6);
+}
