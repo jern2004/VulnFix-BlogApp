@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/view_post.css') }}">
+{% endblock %}
+
+{% block content %}
+  <div class="view-post-wrapper">
+    <div class="view-post-container">
+      <h1>{{ post.title }}</h1>
+      <p class="meta">
+        By <strong>{{ post.author }}</strong> • {{ post.created_at }}
+      </p>
+      <div class="post-content">
+        {{ post.content | nl2br }}
+      </div>
+      <a href="{{ url_for('index') }}" class="back-btn">← Back to Home</a>
+    </div>
+  </div>
+{% endblock %}
