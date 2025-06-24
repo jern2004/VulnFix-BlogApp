@@ -17,7 +17,29 @@
       <div class="post-content">
         {{ post.content | nl2br }}
       </div>
+
+      {% if session.get('username') == post.author %}
+      <div id="edit-section" class="edit-section">
+        <button
+          id="edit-button"
+          class="edit-btn"
+          onclick="window.location.href='{{ url_for('edit_post', post_id=post.id) }}'">
+          Edit
+        </button>
+        <!-- embed the ISO timestamp as a data-attribute -->
+          <span
+            id="countdown"
+            data-created-at="{{ post.created_at.isoformat() }}Z">
+          </span>
+      </div>
+      {% endif %}
+
       <a href="{{ url_for('index') }}" class="back-btn">← Back to Home</a>
     </div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/view_post.js') }}"></script>
 {% endblock %}

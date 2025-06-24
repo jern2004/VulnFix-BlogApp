@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from datetime import datetime
 from flask import current_app
 from werkzeug.security import generate_password_hash
 
@@ -72,28 +73,41 @@ def get_all_posts():
     )
     rows = cursor.fetchall()
     conn.close()
-    return [
-        {
-          'id': row['id'],
-          'title': row['title'],
-          'preview': row['content'][:100],
-          'author': row['author'],
-          'created_at': row['created_at']
-        }
-        for row in rows
-    ]
+
+    posts = []
+    for row in rows:
+        created = datetime.fromisoformat(row['created_at'])
+        posts.append({
+            'id': row['id'],
+            'title': row['title'],
+            'preview': row['content'][:100],
+            'author': row['author'],
+            'created_at': created
+        })
+    return posts
 
 def get_post_by_id(post_id):
     conn   = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        'SELECT p.id, p.title, p.content, p.author, p.created_at '
-        'FROM posts p WHERE p.id = ?',
+        'SELECT id, title, content, author, created_at FROM posts WHERE id = ?',
         (post_id,)
     )
-    post = cursor.fetchone()
+    row = cursor.fetchone()
     conn.close()
-    return post
+
+    if row is None:
+        return None
+
+    # parse the timestamp string into a datetime
+    created = datetime.fromisoformat(row['created_at'])
+    return {
+        'id': row['id'],
+        'title': row['title'],
+        'content': row['content'],
+        'author': row['author'],
+        'created_at': created
+    }
 
 def add_post(title, content, author):
     """
@@ -105,6 +119,19 @@ def add_post(title, content, author):
     cursor.execute(
         'INSERT INTO posts (title, content, author) VALUES (?, ?, ?)',
         (title, content, author)
+    )
+    conn.commit()
+    conn.close()
+
+def update_post(post_id, title, content):
+    """
+    Update an existing post’s title and content.
+    """
+    conn   = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        'UPDATE posts SET title = ?, content = ? WHERE id = ?',
+        (title, content, post_id)
     )
     conn.commit()
     conn.close()
