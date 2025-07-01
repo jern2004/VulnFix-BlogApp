@@ -145,5 +145,28 @@ def nl2br_filter(s):
         return ''
     return Markup(s.replace('\n', '<br>\n'))
 
+@app.route('/post/delete/<int:post_id>', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = get_post_by_id(post_id)
+    if post is None:
+        flash('Post not found.', 'warning')
+        return redirect(url_for('index'))
+
+    # Only the author can delete
+    if session.get('username') != post['author']:
+        flash('You do not have permission to delete this post.', 'danger')
+        return redirect(url_for('view_post', post_id=post_id))
+
+    # Delete the post
+    conn = sqlite3.connect(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database.db'))
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM posts WHERE id = ?', (post_id,))
+    conn.commit()
+    conn.close()
+
+    flash('Post deleted successfully.', 'success')
+    return redirect(url_for('index'))
+
 if __name__ == '__main__':
     app.run(debug=True)
