@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 .view-post-wrapper {
-  padding-top: 80px; /* match your navbar height */
+  padding-top: 80px;
   min-height: calc(100vh - 80px);
   background: transparent;
   display: flex;
@@ -47,48 +47,8 @@
   word-break: break-word;
 }
 
-.back-btn {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff !important;
-  border: none;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.back-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102,126,234,0.6);
-}
-
-.edit-section {
-  position: absolute;
-  bottom: 2.2rem;
-  right: 1.5rem;
-
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* 3. Swap the visual order: countdown first, then button */
-.edit-section #countdown {
-  order: 1;
-}
-.edit-section #edit-button {
-  order: 2;
-}
-
-/* 4. Countdown text */
-.edit-section #countdown {
-  font-size: 0.9rem;
-  color: #6c757d;
-}
-
-/* 5. Edit button styled just like .back-btn */
-#edit-button {
+.back-btn,
+.action-btn {
   display: inline-block;
   padding: 0.75rem 1.5rem;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -99,14 +59,30 @@
   font-weight: 600;
   text-decoration: none;
   transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  cursor: pointer;
 }
 
-#edit-button:hover:not(.disabled) {
+.back-btn:hover,
+.action-btn:hover:not(.disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(102,126,234,0.6);
 }
 
-#edit-button.disabled {
+.action-btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.edit-section {
+  position: absolute;
+  bottom: 2.2rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.edit-section #countdown {
+  font-size: 0.9rem;
+  color: #6c757d;
 }
