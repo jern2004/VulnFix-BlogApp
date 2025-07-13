@@ -97,3 +97,16 @@ body::before {
   filter: none !important;
   opacity: 1 !important;
 }
+
+.btn-white-custom {
+  background-color: white;
+  color: #4a4a4a;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-white-custom:hover {
+  background-color: #f1f1f1;
+  color: #000;
+  border-color: #bbb;
+}

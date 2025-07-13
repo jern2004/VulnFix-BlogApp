@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import re
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import (
@@ -7,6 +8,7 @@ from flask import (
     redirect, url_for, session, flash
 )
 from werkzeug.security import check_password_hash
+from markupsafe import Markup, escape
 
 from app.models import (
     init_db,
@@ -14,7 +16,6 @@ from app.models import (
     get_all_posts, add_post, get_post_by_id, update_post
 )
 from app.forms import PostForm
-from markupsafe import Markup
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'something_secret')  # change in prod!
@@ -88,7 +89,6 @@ def new_post():
         )
         flash('Your post has been published!', 'success')
         return redirect(url_for('index'))
-    # `edit=False` so your template can show "New Post"
     return render_template('new_post.html', form=form, edit=False)
 
 @app.route('/post/edit/<int:post_id>', methods=['GET', 'POST'])
@@ -99,18 +99,15 @@ def edit_post(post_id):
         flash('Post not found.', 'warning')
         return redirect(url_for('index'))
 
-    # Only the author may edit
     if session.get('username') != post['author']:
         flash('You’re not allowed to edit that post.', 'danger')
         return redirect(url_for('view_post', post_id=post_id))
 
-    # Enforce the 1-hour edit window
     cutoff = post['created_at'] + timedelta(hours=1)
     if datetime.utcnow() > cutoff:
         flash('The edit window has closed (1 hour after posting).', 'warning')
         return redirect(url_for('view_post', post_id=post_id))
 
-    # Pre-fill form with existing title/content
     form = PostForm(data={
         'title':   post['title'],
         'content': post['content']
@@ -125,7 +122,6 @@ def edit_post(post_id):
         flash('Your post has been updated.', 'success')
         return redirect(url_for('view_post', post_id=post_id))
 
-    # `edit=True` so your template can show "Edit Post"
     return render_template('new_post.html', form=form, edit=True)
 
 @app.route('/post/<int:post_id>')
@@ -139,11 +135,13 @@ def view_post(post_id):
 @app.template_filter('nl2br')
 def nl2br_filter(s):
     """
-    Replace newlines with <br> and mark the result safe HTML.
+    Replace double newlines with <p> and single newlines with <br> for clean paragraph spacing.
     """
     if s is None:
         return ''
-    return Markup(s.replace('\n', '<br>\n'))
+    paragraphs = re.split(r'\n\s*\n', s)
+    html_paragraphs = ['<p>{}</p>'.format(escape(p).replace('\n', '<br>')) for p in paragraphs]
+    return Markup('\n'.join(html_paragraphs))
 
 @app.route('/post/delete/<int:post_id>', methods=['POST'])
 @login_required
@@ -153,12 +151,10 @@ def delete_post(post_id):
         flash('Post not found.', 'warning')
         return redirect(url_for('index'))
 
-    # Only the author can delete
     if session.get('username') != post['author']:
         flash('You do not have permission to delete this post.', 'danger')
         return redirect(url_for('view_post', post_id=post_id))
 
-    # Delete the post
     conn = sqlite3.connect(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database.db'))
     cursor = conn.cursor()
     cursor.execute('DELETE FROM posts WHERE id = ?', (post_id,))
@@ -167,6 +163,43 @@ def delete_post(post_id):
 
     flash('Post deleted successfully.', 'success')
     return redirect(url_for('index'))
+
+@app.route('/search')
+def search():
+    query = request.args.get('q', '')
+    filter_by = request.args.get('filter', 'all')
+    sort_order = request.args.get('sort', 'latest')
+
+    results = []
+
+    if query.strip():
+        con = sqlite3.connect("app/database.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        like_query = f"%{query.strip()}%"
+        order_clause = "DESC" if sort_order == "latest" else "ASC"
+
+        if filter_by == 'title':
+            cur.execute(f"SELECT * FROM posts WHERE title LIKE ? ORDER BY created_at {order_clause}", (like_query,))
+        elif filter_by == 'content':
+            cur.execute(f"SELECT * FROM posts WHERE content LIKE ? ORDER BY created_at {order_clause}", (like_query,))
+        else:
+            cur.execute(f"""
+                SELECT * FROM posts
+                WHERE title LIKE ? OR content LIKE ?
+                ORDER BY created_at {order_clause}
+            """, (like_query, like_query))
+
+        results = cur.fetchall()
+        con.close()
+
+    return render_template("index.html",
+                           posts=results,
+                           query=query,
+                           filter=filter_by,
+                           sort=sort_order)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
