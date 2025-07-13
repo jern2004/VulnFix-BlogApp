@@ -42,9 +42,13 @@
   font-size: 1.1rem;
   line-height: 1.7;
   color: #444;
-  white-space: pre-wrap;
   margin-bottom: 2rem;
   word-break: break-word;
+  white-space: normal; /* FIX: remove excessive paragraph spacing */
+}
+
+.post-content p {
+  margin-bottom: 1rem; /* clean spacing between paragraphs */
 }
 
 .back-btn,

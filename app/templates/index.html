@@ -4,60 +4,95 @@
 
 {% block content %}
 
-  <!-- Hero / Welcome Section -->
-  <div class="p-5 mb-4 bg-light rounded-3 shadow-sm hero-section">
-    <div class="container-fluid py-3">
-      <h1 class="display-5 fw-bold fade-in">Welcome to VulnFix Blog</h1>
+<!-- Hero / Welcome Section -->
+<div class="p-5 mb-4 bg-light rounded-3 shadow-sm hero-section">
+  <div class="container-fluid py-3">
+    <h1 class="display-5 fw-bold fade-in">Welcome to VulnFix Blog</h1>
 
-      <p class="lead fade-in delay-1">
-        Hi, I’m <strong>J-Ern</strong>, a Cybersecurity & Data Science student at UWA who's obsessed with all things security and a little bit of Web Development as well.  
-      </p>
+    <p class="lead fade-in delay-1">
+      Hi, I’m <strong>J-Ern</strong>, a Cybersecurity & Data Science student at UWA who's obsessed with all things security and a little bit of Web Development as well.  
+    </p>
 
-      <p class="fs-5 fade-in delay-2">
-        This project is my playground: I build in common web vulnerabilities such as SQL Injection, XSS, CSRF, and more and then demonstrate, step-by-step, how to lock them down using Flask's best practices.  
-      </p>
+    <p class="fs-5 fade-in delay-2">
+      This project is my playground: I build in common web vulnerabilities such as SQL Injection, XSS, CSRF, and more and then demonstrate, step-by-step, how to lock them down using Flask's best practices.  
+    </p>
 
-      <p class="fs-5 fade-in delay-3">
-        My goal is simple: learn by doing, share clear examples, and help fellow devs write safer, more resilient code.  
-      </p>
+    <p class="fs-5 fade-in delay-3">
+      My goal is simple: learn by doing, share clear examples, and help fellow devs write safer, more resilient code.  
+    </p>
 
-      <p class="fs-5 fade-in delay-4 mb-4">
-        Feel free to poke around the code, play with the live demo, and follow along as I patch each security hole.  
-      </p>
+    <p class="fs-5 fade-in delay-4 mb-4">
+      Feel free to poke around the code, play with the live demo, and follow along as I patch each security hole.  
+    </p>
 
-      {% if 'username' in session %}
-        <a href="{{ url_for('new_post') }}" class="btn btn-success btn-lg fade-in delay-5">+ New Post</a>
-      {% endif %}
+    {% if 'username' in session %}
+      <a href="{{ url_for('new_post') }}" class="btn btn-success btn-lg fade-in delay-5">+ New Post</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Search Form -->
+<form method="GET" action="{{ url_for('search') }}" onsubmit="return this.q.value.trim() !== '';">
+  <div class="row g-2 align-items-center mb-4">
+    <div class="col-md-6">
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input
+          type="text"
+          name="q"
+          class="form-control"
+          placeholder="Search posts…"
+          value="{{ query | default('') }}"
+          required
+        >
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <select class="form-select" name="filter">
+        <option value="all" {% if filter == 'all' %}selected{% endif %}>All Fields</option>
+        <option value="title" {% if filter == 'title' %}selected{% endif %}>Title</option>
+        <option value="content" {% if filter == 'content' %}selected{% endif %}>Content</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <select class="form-select" name="sort">
+        <option value="latest" {% if sort == 'latest' %}selected{% endif %}>Latest</option>
+        <option value="earliest" {% if sort == 'earliest' %}selected{% endif %}>Earliest</option>
+      </select>
+    </div>
+
+    <div class="col-md-1">
+      <button class="btn btn-white-custom w-100" type="submit">Search</button>
     </div>
   </div>
+</form>
 
-  <!-- Search -->
-  <div class="input-group mb-4">
-    <span class="input-group-text"><i class="bi bi-search"></i></span>
-    <input type="text" id="search-box" class="form-control" placeholder="Search posts…">
-  </div>
-
-  <!-- Posts Section -->
-  {% if posts %}
-    <div class="row" id="posts-container">
-      {% for post in posts %}
-        <div class="col-md-6 col-lg-4 mb-4">
-          <div class="card h-100 shadow-sm post-card">
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title">{{ post.title }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">By {{ post.author }}</h6>
-              <p class="card-text preview-text flex-grow-1">{{ post.preview }}</p>
-              <a href="{{ url_for('view_post', post_id=post.id) }}"
-                 class="btn btn-outline-primary mt-3">Read more</a>
-            </div>
+<!-- Posts Section -->
+{% if posts %}
+  <div class="row" id="posts-container">
+    {% for post in posts %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm post-card">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ post.title }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">By {{ post.author }}</h6>
+            <p class="card-text preview-text flex-grow-1">{{ post.preview }}</p>
+            <a href="{{ url_for('view_post', post_id=post.id) }}" class="btn btn-outline-primary mt-3">Read more</a>
           </div>
         </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="text-center text-muted">
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="text-center text-muted">
+    {% if query %}
+      <p>No results found for "<strong>{{ query }}</strong>".</p>
+    {% else %}
       <p>No posts yet. Check back later!</p>
-    </div>
-  {% endif %}
+    {% endif %}
+  </div>
+{% endif %}
 
 {% endblock %}
