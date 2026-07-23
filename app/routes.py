@@ -9,19 +9,40 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 from markupsafe import Markup, escape
+from flask_wtf import CSRFProtect
 
 from app.models import (
     init_db,
     add_user, get_user_by_username, get_user_by_email,
-    get_all_posts, add_post, get_post_by_id, update_post
+    get_all_posts, get_all_users, add_post, get_post_by_id, update_post
 )
 from app.forms import PostForm
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'something_secret')  # change in prod!
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise RuntimeError(
+        'SECRET_KEY environment variable is not set. Refusing to start with an '
+        'insecure hardcoded default -- see README for how to generate and set one.'
+    )
+app.secret_key = SECRET_KEY
+
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
+
+csrf = CSRFProtect(app)
 
 # Ensure tables exist
 init_db()
+
+@app.context_processor
+def inject_is_admin():
+    if 'username' in session:
+        user = get_user_by_username(session['username'])
+        return {'is_admin': bool(user and user['is_admin'])}
+    return {'is_admin': False}
 
 def login_required(f):
     @wraps(f)
@@ -29,6 +50,19 @@ def login_required(f):
         if 'username' not in session:
             flash('Please log in to access that page.', 'warning')
             return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'username' not in session:
+            flash('Please log in to access that page.', 'warning')
+            return redirect(url_for('login'))
+        user = get_user_by_username(session['username'])
+        if not user or not user['is_admin']:
+            flash('You do not have permission to access that page.', 'danger')
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated
 
@@ -43,6 +77,10 @@ def register():
         username = request.form['username']
         password = request.form['password']
         email    = request.form['email']
+
+        if len(password) < 8:
+            flash('Password must be at least 8 characters long.', 'warning')
+            return redirect(url_for('register'))
 
         if get_user_by_username(username) or get_user_by_email(email):
             flash('Username or email already taken.', 'warning')
@@ -131,6 +169,13 @@ def view_post(post_id):
         flash('Post not found.', 'warning')
         return redirect(url_for('index'))
     return render_template('view_post.html', post=post)
+
+@app.route('/admin')
+@admin_required
+def admin():
+    users = get_all_users()
+    posts = get_all_posts()
+    return render_template('admin.html', users=users, posts=posts)
 
 @app.template_filter('nl2br')
 def nl2br_filter(s):

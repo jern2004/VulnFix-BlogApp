@@ -23,6 +23,11 @@
           <li class="nav-item">
             <a class="nav-link" href="#">Hello, {{ session['username'] }}</a>
           </li>
+          {% if is_admin %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+            </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
           </li>
