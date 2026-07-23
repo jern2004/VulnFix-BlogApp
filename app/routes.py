@@ -7,18 +7,25 @@ from flask import (
     Flask, render_template, request,
     redirect, url_for, session, flash
 )
-from werkzeug.security import check_password_hash
-from markupsafe import Markup, escape
+from markupsafe import Markup
 
 from app.models import (
     init_db,
     add_user, get_user_by_username, get_user_by_email,
-    get_all_posts, add_post, get_post_by_id, update_post
+    get_all_posts, get_all_users, add_post, get_post_by_id, update_post
 )
 from app.forms import PostForm
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'something_secret')  # change in prod!
+
+# VULNERABLE ON PURPOSE: no SameSite/Secure, HttpOnly explicitly turned off so
+# document.cookie can read the session cookie (e.g. via the XSS below), and
+# CSRF validation disabled app-wide (even for the PostForm-based routes).
+app.config['SESSION_COOKIE_HTTPONLY'] = False
+app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = None
+app.config['WTF_CSRF_ENABLED'] = False
 
 # Ensure tables exist
 init_db()
@@ -61,7 +68,8 @@ def login():
         password = request.form['password']
         user     = get_user_by_username(username)
 
-        if user and check_password_hash(user['password'], password):
+        # VULNERABLE ON PURPOSE: plaintext comparison, no password hashing.
+        if user and user['password'] == password:
             session['username'] = user['username']
             flash('Login successful.', 'success')
             return redirect(url_for('index'))
@@ -132,6 +140,14 @@ def view_post(post_id):
         return redirect(url_for('index'))
     return render_template('view_post.html', post=post)
 
+@app.route('/admin')
+def admin():
+    # VULNERABLE ON PURPOSE: no login_required, no is_admin check -- anyone,
+    # logged in or not, can view every user's username/email/plaintext password.
+    users = get_all_users()
+    posts = get_all_posts()
+    return render_template('admin.html', users=users, posts=posts)
+
 @app.template_filter('nl2br')
 def nl2br_filter(s):
     """
@@ -139,8 +155,10 @@ def nl2br_filter(s):
     """
     if s is None:
         return ''
+    # VULNERABLE ON PURPOSE: no escaping -- raw HTML/JS in post content executes
+    # for anyone who views the post (stored XSS).
     paragraphs = re.split(r'\n\s*\n', s)
-    html_paragraphs = ['<p>{}</p>'.format(escape(p).replace('\n', '<br>')) for p in paragraphs]
+    html_paragraphs = ['<p>{}</p>'.format(p.replace('\n', '<br>')) for p in paragraphs]
     return Markup('\n'.join(html_paragraphs))
 
 @app.route('/post/delete/<int:post_id>', methods=['POST'])
@@ -177,20 +195,22 @@ def search():
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
-        like_query = f"%{query.strip()}%"
         order_clause = "DESC" if sort_order == "latest" else "ASC"
 
+        # VULNERABLE ON PURPOSE: query is spliced directly into the SQL string,
+        # no parameterization -- classic SQL injection via `q`.
         if filter_by == 'title':
-            cur.execute(f"SELECT * FROM posts WHERE title LIKE ? ORDER BY created_at {order_clause}", (like_query,))
+            sql = f"SELECT * FROM posts WHERE title LIKE '%{query.strip()}%' ORDER BY created_at {order_clause}"
         elif filter_by == 'content':
-            cur.execute(f"SELECT * FROM posts WHERE content LIKE ? ORDER BY created_at {order_clause}", (like_query,))
+            sql = f"SELECT * FROM posts WHERE content LIKE '%{query.strip()}%' ORDER BY created_at {order_clause}"
         else:
-            cur.execute(f"""
+            sql = f"""
                 SELECT * FROM posts
-                WHERE title LIKE ? OR content LIKE ?
+                WHERE title LIKE '%{query.strip()}%' OR content LIKE '%{query.strip()}%'
                 ORDER BY created_at {order_clause}
-            """, (like_query, like_query))
+            """
 
+        cur.execute(sql)
         results = cur.fetchall()
         con.close()
 

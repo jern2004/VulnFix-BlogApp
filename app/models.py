@@ -2,7 +2,6 @@ import os
 import sqlite3
 from datetime import datetime
 from flask import current_app
-from werkzeug.security import generate_password_hash
 
 def get_db_connection():
     base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -39,15 +38,23 @@ def init_db():
     conn.close()
 
 def add_user(username, password, email=None, is_admin=0):
+    # VULNERABLE ON PURPOSE: password stored as plaintext, no hashing at all.
     conn   = get_db_connection()
     cursor = conn.cursor()
-    hashed = generate_password_hash(password)
     cursor.execute(
         'INSERT INTO users (username, password, email, is_admin) VALUES (?, ?, ?, ?)',
-        (username, hashed, email, is_admin)
+        (username, password, email, is_admin)
     )
     conn.commit()
     conn.close()
+
+def get_all_users():
+    conn   = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, username, password, email, is_admin FROM users ORDER BY id')
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 def get_user_by_username(username):
     conn   = get_db_connection()

